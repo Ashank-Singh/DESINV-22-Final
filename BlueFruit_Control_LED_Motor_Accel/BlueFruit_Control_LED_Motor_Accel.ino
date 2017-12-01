@@ -76,7 +76,7 @@ extern uint8_t packetbuffer[];
 void setup(void)
 {
   
-  accel.init();
+  //accel.init();
   AFMS.begin();
 
   // Set the speed to start, from 0 (off) to 255 (max speed)
@@ -97,12 +97,12 @@ void setup(void)
   driveMotor4->run(FORWARD);
   driveMotor4->run(RELEASE);
 
-// Only run this if using Arduino 
+//// Only run this if using Arduino 
 #if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__)
   while (!Serial);  // required for Flora & Micro
   delay(500);
 #endif
-//
+////
   Serial.begin(115200); // serial monitor
 
   /* Initialise the module */
@@ -164,6 +164,7 @@ void loop()
 {
 
 /// Accelerometer code
+/*
   if (accel.available())
   {
     // First, use accel.read() to read the new variables:
@@ -187,7 +188,7 @@ void loop()
     
     Serial.println(); // Print new line every time.
   }
-
+*/
   uint8_t len = readPacket(&ble, BLE_READPACKET_TIMEOUT);
   if (len == 0) return;
 
@@ -237,7 +238,7 @@ void loop()
       }
 
       if(buttnum == 4){
-        currentMotorSpeed = 253;
+        currentMotorSpeed = 115;
       }
 
       // forward (prototype1) 
@@ -382,7 +383,7 @@ void loop()
 }
 
 /// Accel Helper Functions
-
+/*
 ///
 // The function demonstrates how to use the accel.x, accel.y and
 //  accel.z variables.
@@ -438,6 +439,6 @@ void printOrientation(){
     break;
   }
 }
-
+*/
 
 
