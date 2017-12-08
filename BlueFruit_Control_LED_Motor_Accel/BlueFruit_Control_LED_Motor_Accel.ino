@@ -2,7 +2,6 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <Wire.h>
-#include <SparkFun_MMA8452Q.h> 
 
 #include "Adafruit_BLE.h"
 #include "Adafruit_BluefruitLE_SPI.h"
@@ -19,7 +18,6 @@
 // Define battery pin
 #define VBATPIN A9
 
-MMA8452Q accel;
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
 
 // Motor Mapping
@@ -29,14 +27,12 @@ Adafruit_MotorShield AFMS = Adafruit_MotorShield();
  * driveMotor3 : M3
  * driveMotor4 : M4
  */
-//
 
 Adafruit_DCMotor *driveMotor1 = AFMS.getMotor(1);
 Adafruit_DCMotor *driveMotor2 = AFMS.getMotor(2);
 Adafruit_DCMotor *driveMotor3 = AFMS.getMotor(3);
 Adafruit_DCMotor *driveMotor4 = AFMS.getMotor(4);
 
-//
 
 
 // Initialize LEDs
@@ -106,7 +102,6 @@ void setup(void)
   Serial.begin(115200); // serial monitor
 
   /* Initialise the module */
- // Serial.print(F("Initialising the Bluefruit LE module: "));
 
   if ( !ble.begin(VERBOSE_MODE) )
   {
@@ -140,7 +135,7 @@ void setup(void)
   Serial.println(F("******************************"));
 
   // LED Activity command is only supported from 0.6.6
-  if ( ble.isVersionAtLeast(MINIMUM_FIRMWARE_VERSION) )
+  if (ble.isVersionAtLeast(MINIMUM_FIRMWARE_VERSION))
   {
     // Change Mode LED Activity
   //  Serial.println(F("Change LED activity to " MODE_LED_BEHAVIOUR));
@@ -160,35 +155,8 @@ void setup(void)
 volatile int currentMotorSpeed = 150;
 float prevvbat = 0;
 
-void loop()
-{
+void loop() {
 
-/// Accelerometer code
-/*
-  if (accel.available())
-  {
-    // First, use accel.read() to read the new variables:
-    accel.read();
-    
-    // accel.read() will update two sets of variables. 
-    // * int's x, y, and z will store the signed 12-bit values 
-    //   read out of the accelerometer.
-    // * floats cx, cy, and cz will store the calculated 
-    //   acceleration from those 12-bit values. These variables 
-    //   are in units of g's.
-    // Check the two function declarations below for an example
-    // of how to use these variables.
-    printCalculatedAccels();
-    //printAccels(); // Uncomment to print digital readings
-    
-    // The library also supports the portrait/landscape detection
-    //  of the MMA8452Q. Check out this function declaration for
-    //  an example of how to use that.
-    printOrientation();
-    
-    Serial.println(); // Print new line every time.
-  }
-*/
   uint8_t len = readPacket(&ble, BLE_READPACKET_TIMEOUT);
   if (len == 0) return;
 
@@ -204,8 +172,7 @@ void loop()
     analogWrite(blueLED, blue);   
     
   }
-////
-    // Buttons
+    
     // Button Mapping
     /*
      * Button 1 : 1
@@ -218,30 +185,32 @@ void loop()
      * Button 8 : RIGHT
      */
 
-//Serial.println(currentMotorSpeed);
   if (packetbuffer[1] == 'B') {
     uint8_t buttnum = packetbuffer[2] - '0';
     boolean pressed = packetbuffer[3] - '0';
+    
     if (pressed) {
-
-      //Speed Control Modes
-      if(buttnum == 1){
-        currentMotorSpeed = 150;
-      }
+      
+      // Speed Control Modes
+      if(buttnum == 1){ // if 25% reduction, add 37.5
+        currentMotorSpeed = 187; //w/ offset: 187; perc: 112.5; orig: 150
+      } 
 
       if(buttnum == 2){
-        currentMotorSpeed = 180;
+        currentMotorSpeed = 225; //w/ offset: 225; perc: 135; orig: 180
       }
 
       if(buttnum == 3){
-        currentMotorSpeed = 250;
+        currentMotorSpeed = 250; //w/ offset: 187; perc: 187.5; orig: 250 //can't go faster
       }
 
       if(buttnum == 4){
-        currentMotorSpeed = 115;
+        currentMotorSpeed = 144; //w/ offset: 144; perc: 86.25; orig: 115
       }
 
-      // forward (prototype1) 
+      //Directions
+     
+      // forward 
       if(buttnum == 5){
         
         driveMotor1->setSpeed(currentMotorSpeed);
@@ -259,7 +228,7 @@ void loop()
 
       }
 
-      // back
+      // backward
       if(buttnum == 6){
 
         driveMotor1->setSpeed(currentMotorSpeed);
@@ -267,7 +236,6 @@ void loop()
         driveMotor3->setSpeed(currentMotorSpeed);
         driveMotor4->setSpeed(currentMotorSpeed);
 
-        
         driveMotor1->run(FORWARD);
         driveMotor4->run(FORWARD);
 
@@ -275,12 +243,10 @@ void loop()
         driveMotor3->run(BACKWARD);
 
         analogWrite(redLED, MAX_BRIGHTNESS);
-
       }
 
       // right 
       if(buttnum == 8){
-
         
         driveMotor1->setSpeed(currentMotorSpeed);
         driveMotor2->setSpeed(currentMotorSpeed);
@@ -288,11 +254,11 @@ void loop()
         driveMotor4->setSpeed(currentMotorSpeed);
         
         analogWrite(greenLED, MAX_BRIGHTNESS);
+        
         driveMotor1->run(FORWARD);
         driveMotor2->run(FORWARD);
         driveMotor3->run(FORWARD);
         driveMotor4->run(FORWARD);
-
 
         analogWrite(blueLED, MAX_BRIGHTNESS);
       }
@@ -306,6 +272,7 @@ void loop()
         driveMotor4->setSpeed(currentMotorSpeed);
 
         analogWrite(redLED, MAX_BRIGHTNESS);
+        
         driveMotor1->run(BACKWARD);
         driveMotor2->run(BACKWARD);
         driveMotor3->run(BACKWARD);
@@ -318,7 +285,7 @@ void loop()
       
     } else {
       // button release states
-
+      
       // forward release
       if(buttnum == 5){
         driveMotor1->run(RELEASE);
@@ -368,9 +335,8 @@ void loop()
     }
   }
 
-///
 #if defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega16U4__)
-// battery voltage stats 
+  // battery voltage stats 
   float measuredvbat = analogRead(VBATPIN);
   measuredvbat *= 2;    // we divided by 2, so multiply back
   measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
@@ -378,67 +344,7 @@ void loop()
 
   ble.print("Battery: " ); ble.println(measuredvbat);
 #endif
-///
+
 
 }
-
-/// Accel Helper Functions
-/*
-///
-// The function demonstrates how to use the accel.x, accel.y and
-//  accel.z variables.
-// Before using these variables you must call the accel.read()
-//  function!
-void printAccels(){
-  Serial.print(accel.x, 3);
-  Serial.print("\t");
-  Serial.print(accel.y, 3);
-  Serial.print("\t");
-  Serial.print(accel.z, 3);
-  Serial.print("\t");
-}
-
-// This function demonstrates how to use the accel.cx, accel.cy,
-//  and accel.cz variables.
-// Before using these variables you must call the accel.read()
-//  function!
-void printCalculatedAccels(){ 
-  Serial.print(accel.cx, 3);
-  Serial.print("\t");
-  Serial.print(accel.cy, 3);
-  Serial.print("\t");
-  Serial.print(accel.cz, 3);
-  Serial.print("\t");
-}
-
-// This function demonstrates how to use the accel.readPL()
-// function, which reads the portrait/landscape status of the
-// sensor.
-void printOrientation(){
-  // accel.readPL() will return a byte containing information
-  // about the orientation of the sensor. It will be either
-  // PORTRAIT_U, PORTRAIT_D, LANDSCAPE_R, LANDSCAPE_L, or
-  // LOCKOUT.
-  byte pl = accel.readPL();
-  switch (pl)
-  {
-  case PORTRAIT_U:
-    Serial.print("Portrait Up");
-    break;
-  case PORTRAIT_D:
-    Serial.print("Portrait Down");
-    break;
-  case LANDSCAPE_R:
-    Serial.print("Landscape Right");
-    break;
-  case LANDSCAPE_L:
-    Serial.print("Landscape Left");
-    break;
-  case LOCKOUT:
-    Serial.print("Flat");
-    break;
-  }
-}
-*/
-
 
